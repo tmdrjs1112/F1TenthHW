@@ -24,5 +24,55 @@ cd ~/f1tenth_ws
 rosdep install --from-path src --ignore-src -r -y
 colcon build
 source install/setup.bash
+```
 
----
+
+### 2. 시뮬레이터 및 관련 노드 실행
+```
+# 터미널 1: 시뮬레이터 실행
+ros2 launch f1tenth_gym_ros gym_bridge_launch.py
+
+# 터미널 2: 맵 서버 실행
+ros2 run nav2_map_server map_server --ros-args -p yaml_filename:=$HOME/f1tenth_ws/src/f1tenth_gym_ros/maps/levine.yaml
+
+# 터미널 3: map_server 상태 변경
+ros2 lifecycle set /map_server configure
+ros2 lifecycle set /map_server activate
+
+# 터미널 4: TF 고정 변환 브로드캐스트
+ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 map ego_racecar/base_link
+
+# 터미널 5: 키보드 조작 노드 실행
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+
+# 터미널 6: cmdvel_to_ackermann 노드 실행
+ros2 run cmdvel_to_ackermann cmdvel_to_ackermann
+```
+
+## 문제 해결 및 참고사항
+
+    setup.py entry_points 문제 해결로 cmdvel_to_ackermann 빌드 오류 해결
+
+    ackermann_msgs 패키지 미설치 문제 해결
+
+    map_server lifecycle transition 실패 문제는 map_server 터미널 로그 확인 필수
+
+    TF 변환 문제 해결을 위해 static_transform_publisher 사용
+
+    RViz Fixed Frame을 map 또는 ego_racecar/base_link로 조절하며 확인
+
+    RobotModel Status Error는 URDF 파라미터 설정 확인 필요
+
+## 향후 계획
+
+    자율 주행 알고리즘 추가 개발 및 센서 데이터 활용
+
+    조이스틱 연동 및 SLAM 연동 시도
+
+    시뮬레이터 및 RViz 커스텀 설정 강화
+
+## 참고 문헌 및 라이선스
+
+    O’Kelly et al., "F1TENTH: An Open-source Evaluation Environment for Continuous Control and Reinforcement Learning," NeurIPS 2019
+
+    본 프로젝트는 MIT 라이선스를 따릅니다.
